@@ -40,14 +40,13 @@ pipeline {
                         env.HOST = "opensource-demo.orangehrmlive.com"
                     }
 
-                    echo "Running tests on: ${env.HOST}"
+                    echo "Running test on: ${env.HOST}"
                 }
             }
         }
 
         stage('Run JMeter Test') {
             steps {
-
                 bat """
                 if exist report rmdir /s /q report
                 if exist result.jtl del /f /q result.jtl
@@ -73,6 +72,7 @@ pipeline {
                     reportDir: 'report',
                     reportFiles: 'index.html',
                     reportName: 'JMeter HTML Report',
+                    allowMissing: false,
                     keepAll: true,
                     alwaysLinkToLastBuild: true
                 ])
@@ -81,7 +81,6 @@ pipeline {
     }
 
     post {
-
         success {
             echo "Pipeline SUCCESS"
         }
