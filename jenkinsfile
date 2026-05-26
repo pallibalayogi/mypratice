@@ -1,13 +1,53 @@
-stage('Run JMeter Test') {
-    steps {
-        bat '''
-        if exist report rmdir /s /q report
-        if exist result.jtl del /f /q result.jtl
+pipeline {
+    agent any
 
-        jmeter -n ^
-        -t petstorepratice.jmx ^
-        -l result.jtl ^
-        -e -o report
-        '''
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'master',
+                url: 'https://github.com/pallibalayogi/mypratice.git'
+            }
+        }
+
+        stage('Run JMeter Test') {
+            steps {
+                bat '''
+                if exist report rmdir /s /q report
+                if exist result.jtl del /f /q result.jtl
+
+                jmeter -n ^
+                -t petstorepratice.jmx ^
+                -l result.jtl ^
+                -e -o report
+                '''
+            }
+        }
+
+        stage('Archive Results') {
+            steps {
+                archiveArtifacts artifacts: 'result.jtl', fingerprint: true
+                archiveArtifacts artifacts: 'report/**', fingerprint: true
+            }
+        }
+
+        stage('Publish HTML Report') {
+            steps {
+                publishHTML([
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'report',
+                    reportFiles: 'index.html',
+                    reportName: 'JMeter HTML Report'
+                ])
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed'
+        }
     }
 }
