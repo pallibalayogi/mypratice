@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk17'
+    }
+
+    stages {
+
+        stage('Clone Repository') {
+            steps {
+                git branch: 'master',
+                url: 'https://github.com/pallibalayogi/mypratice.git'
+            }
+        }
+
+        stage('Run JMeter Test') {
+            steps {
+                bat '''
+                jmeter -n ^
+                -t petstorepratice.jmx ^
+                -l result.jtl ^
+                -e -o report
+                '''
+            }
+        }
+
+        stage('Archive Results') {
+            steps {
+                archiveArtifacts artifacts: 'result.jtl', fingerprint: true
+                archiveArtifacts artifacts: 'report/**', fingerprint: true
+            }
+        }
+
+        stage('Publish HTML Report') {
+            steps {
+                publishHTML([
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'report',
+                    reportFiles: 'index.html',
+                    reportName: 'JMeter HTML Report'
+                ])
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline Execution Completed'
+        }
+
+        success {
+            echo 'JMeter Test Passed'
+        }
+
+        failure {
+            echo 'JMeter Test Failed'
+        }
+    }
+}
