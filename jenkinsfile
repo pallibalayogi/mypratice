@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        jdk 'jdk17'
-    }
-
     stages {
 
         stage('Clone Repository') {
@@ -49,14 +45,6 @@ pipeline {
     post {
         always {
             echo 'Pipeline Execution Completed'
-        }
-
-        success {
-            echo 'JMeter Test Passed'
-        }
-
-        failure {
-            echo 'JMeter Test Failed'
         }
     }
 }
