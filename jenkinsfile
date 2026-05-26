@@ -12,7 +12,7 @@ pipeline {
     }
 
     environment {
-        HOST = ""
+        HOST = "petstore.octoperf.com"
     }
 
     stages {
@@ -28,16 +28,21 @@ pipeline {
             steps {
                 script {
 
+                    echo "Selected ENV = ${params.ENV}"
+
                     if (params.ENV == "DEV") {
                         env.HOST = "petstore.octoperf.com"
                     }
-
                     else if (params.ENV == "QA") {
                         env.HOST = "jpetstore.aspectran.com"
                     }
-
-                    else {
+                    else if (params.ENV == "PROD") {
                         env.HOST = "opensource-demo.orangehrmlive.com"
+                    }
+                    else {
+                        // fallback safety (prevents null issue)
+                        env.HOST = "petstore.octoperf.com"
+                        echo "WARNING: ENV not selected, using default DEV"
                     }
 
                     echo "Running test on: ${env.HOST}"
@@ -47,6 +52,7 @@ pipeline {
 
         stage('Run JMeter Test') {
             steps {
+
                 bat """
                 if exist report rmdir /s /q report
                 if exist result.jtl del /f /q result.jtl
